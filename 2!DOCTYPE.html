@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Digitale Turmuhr-Simulation</title>
+
+    <style>
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            text-align: center;
+
+            padding: 20px;
+
+        }
+
+
+        #digital-clock {
+
+            font-size: 60px;
+
+            font-weight: bold;
+
+            margin: 20px auto;
+
+            color: #333;
+
+        }
+
+
+        #sound-buttons {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            justify-content: center;
+
+            gap: 10px;
+
+            margin: 20px 0;
+
+        }
+
+
+        button {
+
+            padding: 10px 15px;
+
+            font-size: 14px;
+
+            cursor: pointer;
+
+        }
+
+
+        #startButton {
+
+            background-color: #007BFF;
+
+            color: white;
+
+            font-size: 18px;
+
+            padding: 10px 20px;
+
+            border: none;
+
+            border-radius: 5px;
+
+            cursor: pointer;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <h1>Digitale Turmuhr-Simulation mit Sonderglocken</h1>
+
+    <div id="digital-clock">00:00:00</div>
+
+    <button id="startButton" onclick="unlockAudio()">Start</button>
+
+
+    <h2>Glockensounds hochladen</h2>
+
+    <div id="sound-buttons">
+
+        <!-- Viertel-, Halb- und Dreiviertel-Stundenglocken -->
+
+        <button onclick="uploadSound('quarter')">Viertelstunde</button>
+
+        <button onclick="uploadSound('half')">Halbe Stunde</button>
+
+        <button onclick="uploadSound('threequarter')">Dreiviertelstunde</button>
+
+
+        <!-- Buttons für die 12 Stunden -->
+
+        <button onclick="uploadSound('hour', 0)">1 Uhr</button>
+
+        <button onclick="uploadSound('hour', 1)">2 Uhr</button>
+
+        <button onclick="uploadSound('hour', 2)">3 Uhr</button>
+
+        <button onclick="uploadSound('hour', 3)">4 Uhr</button>
+
+        <button onclick="uploadSound('hour', 4)">5 Uhr</button>
+
+        <button onclick="uploadSound('hour', 5)">6 Uhr</button>
+
+        <button onclick="uploadSound('hour', 6)">7 Uhr</button>
+
+        <button onclick="uploadSound('hour', 7)">8 Uhr</button>
+
+        <button onclick="uploadSound('hour', 8)">9 Uhr</button>
+
+        <button onclick="uploadSound('hour', 9)">10 Uhr</button>
+
+        <button onclick="uploadSound('hour', 10)">11 Uhr</button>
+
+        <button onclick="uploadSound('hour', 11)">12 Uhr</button>
+
+
+        <!-- Tägliche Glocken -->
+
+        <button onclick="uploadSound('daily1')">Tägliche Glocke 1</button>
+
+        <button onclick="uploadSound('daily2')">Tägliche Glocke 2</button>
+
+
+        <!-- Sonntag-Sonderglocken -->
+
+        <button onclick="uploadSound('sunday1')">Sonntag Glocke 1</button>
+
+        <button onclick="uploadSound('sunday2')">Sonntag Glocke 2</button>
+
+        <button onclick="uploadSound('sunday3')">Sonntag Glocke 3</button>
+
+    </div>
+
+
+    <input type="file" id="soundInput" accept="audio/*" style="display: none;">
+
+
+    <script>
+
+        const sounds = {
+
+            hour: Array(12).fill(null), // Glockenschläge für 1-12 Uhr
+
+            quarter: null, // Viertelstundenglocke
+
+            half: null, // Halbstundenglocke
+
+            threequarter: null, // Dreiviertelstundenglocke
+
+            daily1: null, // Tägliche Glocke 1
+
+            daily2: null, // Tägliche Glocke 2
+
+            sunday1: null, // Sonntag Glocke 1
+
+            sunday2: null, // Sonntag Glocke 2
+
+            sunday3: null  // Sonntag Glocke 3
+
+        };
+
+
+        // Globale Variable, um sicherzustellen, dass Audio erst nach Interaktion abgespielt wird
+
+        let audioContextUnlocked = false;
+
+
+        // Benutzerinteraktion erzwingen
+
+        function unlockAudio() {
+
+            const silentAudio = new Audio();
+
+            silentAudio.play().then(() => {
+
+                document.getElementById("startButton").style.display = "none"; // Button ausblenden
+
+                console.log("Audio-Freischaltung erfolgreich!");
+
+            }).catch(() => console.log("Audio-Freischaltung fehlgeschlagen."));
+
+        }
+
+
+        // Hochladen von Sounds
+
+        function uploadSound(type, index = null) {
+
+            const input = document.getElementById("soundInput");
+
+            input.click();
+
+            input.onchange = () => {
+
+                const file = input.files[0];
+
+                if (file) {
+
+                    if (index !== null) {
+
+                        sounds.hour[index] = file;
+
+                        alert(`Sound für ${index + 1} Uhr hochgeladen!`);
+
+                    } else {
+
+                        sounds[type] = file;
+
+                        alert(`${type}-Sound hochgeladen!`);
+
+                    }
+
+                } else {
+
+                    console.log("Keine Datei hochgeladen.");
+
+                }
+
+            };
+
+        }
+
+
+        // Sound abspielen
+
+        function playSound(file) {
+
+            if (!file) {
+
+                console.log("Kein Sound vorhanden.");
+
+                return;
+
+            }
+
+            const audio = new Audio(URL.createObjectURL(file));
+
+            audio.play().catch(err => console.log("Fehler beim Abspielen:", err));
+
+        }
+
+
+        // Uhrzeit aktualisieren
+
+        function updateClock() {
+
+            const now = new Date();
+
+            const hours = now.getHours();
+
+            const minutes = now.getMinutes();
+
+            const seconds = now.getSeconds();
+
+            const day = now.getDay(); // 0 = Sonntag
+
+
+            // Digitale Uhr aktualisieren
+
+            document.getElementById("digital-clock").textContent = now.toLocaleTimeString();
+
+
+            // Glockensteuerung
+
+            if (seconds === 0) {
+
+                if (minutes === 0 && sounds.hour[hours % 12]) {
+
+                    playSound(sounds.hour[hours % 12]);
+
+                } else if (minutes === 15) {
+
+                    playSound(sounds.quarter);
+
+                } else if (minutes === 30) {
+
+                    playSound(sounds.half);
+
+                } else if (minutes === 45) {
+
+                    playSound(sounds.threequarter);
+
+                }
+
+
+                // Tägliche Glocken
+
+                if (hours === 12 && minutes === 0) playSound(sounds.daily1);
+
+                if (hours === 18 && minutes === 0) playSound(sounds.daily2);
+
+
+                // Sonntag-Sonderglocken
+
+                if (day === 0) {
+
+                    if (hours === 9 && minutes === 0) playSound(sounds.sunday1);
+
+                    if (hours === 10 && minutes === 0) playSound(sounds.sunday2);
+
+                    if (hours === 15 && minutes === 0) playSound(sounds.sunday3);
+
+                }
+
+            }
+
+
+            setTimeout(updateClock, 1000);
+
+        }
+
+
+        // Uhr starten
+
+        updateClock();
+
+    </script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
